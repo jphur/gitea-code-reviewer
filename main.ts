@@ -17,16 +17,20 @@ app.post("/review", async (req: any, res: any) => {
         const baseUrl = `${giteaUrl}/repos/${base.repo.full_name}`;
         const { data: diffContent } = await axios.get(`${baseUrl}/pulls/${number}.diff`, giteaAuth);
 
-
         const { output } = await generateText({
             model: google("gemini-2.5-flash-lite"),
-            system: "You are an expert code reviewer. Provide constructive feedback and suggestions for every file. You must answer in Spanish.",
+            system: "You are an expert code reviewer. Provide corrections for every file. You must answer in Spanish.",
             prompt: `Review the following code changes and provide feedback for each modified file:\n\n${diffContent}`,
             output: Output.object({
                 schema: z.object({
-                    files: z.array(z.object({ path: z.string(), feedback: z.string(), score: z.number() })),
+                    files: z.array(
+                        z.object({
+                            path: z.string(),
+                            comments: z.array(z.object({ line: z.number(), body: z.string() })),
+                            score: z.number(),
+                        }),
+                    ),
                     overallScore: z.number(),
-                    overallFeedback: z.string(),
                 }),
             }),
             // providerOptions: { google: { thinkingLevel: "minimal" } },
@@ -35,18 +39,27 @@ app.post("/review", async (req: any, res: any) => {
         const isBad = output.overallScore < 8;
         const reviewEndpoint = `${baseUrl}/pulls/${number}/reviews`;
 
-        const comments = output.files.map((fileFeedback) => {
-            return {
-                path: fileFeedback.path,
-                position: 1,
-                body: `**Puntuación:** ${fileFeedback.score}/10\n\n${fileFeedback.feedback}`,
-            };
+        const comments = output.files.flatMap((fileFeedback) => {
+            const seen = new Set<string>();
+
+            const mapped = fileFeedback.comments.flatMap((c) => {
+                const new_position = c.line;
+
+                const body = c.body;
+                const key = `${fileFeedback.path}|${new_position}|${body}`;
+                if (seen.has(key)) return [];
+                seen.add(key);
+
+                return [{ path: fileFeedback.path, new_position, body }];
+            });
+
+            return mapped.slice(0, 8);
         });
 
         await axios.post(
             reviewEndpoint,
             {
-                body: `### 🤖 Revisión de IA\n\n**Puntuación general:** ${output.overallScore}/10\n\n${output.overallFeedback}`,
+                body: `### 🤖 Revisión de IA\n\n**Puntuación general:** ${output.overallScore}/10`,
                 event: isBad ? "REQUEST_CHANGES" : "COMMENT",
                 comments,
             },
