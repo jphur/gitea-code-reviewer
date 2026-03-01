@@ -5,9 +5,7 @@ import { chromium } from "playwright";
 
 const playwright = tool({
     description: "Use Playwright to interact with web pages.",
-    inputSchema: z.object({
-        url: z.string(),
-    }),
+    inputSchema: z.object({ url: z.string() }),
     execute: async ({ url }) => {
         try {
             const browser = await chromium.launch({ headless: false });
@@ -16,19 +14,19 @@ const playwright = tool({
             const content = await page.content();
             await browser.close();
             return content;
-        } catch (error: any) {
-            console.error("❌ Playwright:", error.message);
+        } catch (err: any) {
+            console.error("❌ Playwright:", err.message);
             return {
                 ok: false,
-                error: error.message,
-                stack: error.stack,
+                error: err.message,
+                stack: err.stack,
             };
         }
     },
 });
 
 async function main() {
-    const {text} = await generateText({
+    const { text } = await generateText({
         model: google("gemini-3-flash-preview"),
         stopWhen: stepCountIs(2),
         providerOptions: { google: { thinkingConfig: { thinkingLevel: "minimal" } } },
