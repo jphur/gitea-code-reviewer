@@ -11,6 +11,7 @@ services:
     environment:
       - USER_UID=1000
       - USER_GID=1000
+      - GITEA__webhook__ALLOWED_HOST_LIST=host.docker.internal,127.0.0.1
     restart: always
     networks:
       - gitea
@@ -21,14 +22,3 @@ services:
     ports:
       - "3000:3000"
       - "222:22"
-
-  ai_bot:
-    build: .
-    container_name: gitea_ai_bot
-    environment:
-      - GITEA_TOKEN=${GITEA_TOKEN}
-      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
-    networks:
-      - gitea
-    ports:
-      - "4000:4000"

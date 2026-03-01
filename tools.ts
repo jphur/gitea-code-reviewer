@@ -2,7 +2,7 @@ import { generateText, tool, stepCountIs } from "ai";
 import { google } from "@ai-sdk/google";
 import { z } from "zod";
 import { chromium } from "playwright";
-
+// WIP: USE MCP INSTEAD TOOLS https://ai-sdk.dev/cookbook/next/mcp-tools#mcp-tools
 const playwright = tool({
     description: "Use Playwright to interact with web pages.",
     inputSchema: z.object({ url: z.string() }),
