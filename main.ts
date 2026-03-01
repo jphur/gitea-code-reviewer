@@ -28,20 +28,15 @@ const playwright = tool({
 });
 
 async function main() {
-    const res = await generateText({
-        model: google("gemini-2.5-flash-lite"),
+    const {text} = await generateText({
+        model: google("gemini-3-flash-preview"),
         stopWhen: stepCountIs(2),
-        // providerOptions: {
-        //     google: {
-        //         thinkingConfig: { thinkingLevel: "minimal" },
-        //     },
-        // },
+        providerOptions: { google: { thinkingConfig: { thinkingLevel: "minimal" } } },
         tools: { playwright },
         prompt: 'Go to "https://verdnatura.es" and tell me what you see on the website in 150 words or less.',
     });
 
-    console.log("\n🤖 OPINIÓN DEL MODELO:\n");
-    console.log(res.text);
+    console.log(text);
 }
 
 main();
