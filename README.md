@@ -22,6 +22,7 @@ pnpm install
 ```env
 GITEA_URL=http://tu-gitea
 GITEA_TOKEN=tu_token
+GOOGLE_GENERATIVE_AI_API_KEY=secret
 ```
 
 3. Ejecuta el servicio:
