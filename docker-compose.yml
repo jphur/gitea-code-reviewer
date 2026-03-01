@@ -22,17 +22,13 @@ services:
       - "3000:3000"
       - "222:22"
 
-  runner:
-    image: gitea/act_runner:latest
-    container_name: gitea_runner
-    restart: always
-    depends_on:
-      - server
+  ai_bot:
+    build: .
+    container_name: gitea_ai_bot
+    environment:
+      - GITEA_TOKEN=${GITEA_TOKEN}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
     networks:
       - gitea
-    volumes:
-      - ./runner_data:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - GITEA_INSTANCE_URL=http://server:3000
-      - GITEA_RUNNER_REGISTRATION_TOKEN=YOUR_TOKEN_HERE
+    ports:
+      - "4000:4000"
