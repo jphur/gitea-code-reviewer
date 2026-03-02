@@ -1,24 +1,16 @@
-version: "3"
-
-networks:
-  gitea:
-    external: false
-
 services:
-  server:
-    image: docker.gitea.com/gitea:1.25.4
-    container_name: gitea
-    environment:
-      - USER_UID=1000
-      - USER_GID=1000
-      - GITEA__webhook__ALLOWED_HOST_LIST=host.docker.internal,127.0.0.1
-    restart: always
-    networks:
-      - gitea
-    volumes:
-      - ./gitea:/data
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "3000:3000"
-      - "222:22"
+    gitea:
+        image: docker.gitea.com/gitea:1.25.4
+        container_name: gitea
+        restart: always
+        environment:
+            - USER_UID=1000
+            - USER_GID=1000
+            - GITEA__webhook__ALLOWED_HOST_LIST=host.docker.internal,127.0.0.1
+        volumes:
+            - ./gitea:/data
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - "9000:9000"
+            - "222:22"
