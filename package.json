@@ -1,6 +1,6 @@
 {
     "name": "reviewer",
-    "version": "1.0.0-beta",
+    "version": "1.0.0-alpha",
     "description": "Agentic review assistant for code and pull requests",
     "type": "module",
     "main": "dist/main.js",
