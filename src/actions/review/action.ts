@@ -4,6 +4,7 @@ import axios from "axios";
 import { reviewSchema } from "./schema";
 import { model } from "./model";
 import logger from "../../logger";
+import type { Request, Response } from "express";
 
 const giteaUrl = process.env.GITEA_URL;
 const giteaAuth = { headers: { Authorization: `token ${process.env.GITEA_TOKEN}` } };
@@ -14,7 +15,6 @@ const systemPrompt = readFileSync(new URL("./system-prompt.md", import.meta.url)
  * @param req The request object.
  * @param res The response object.
  */
-import type { Request, Response } from "express";
 
 export async function review(req: Request, res: Response) {
     const { action, pull_request, requested_reviewer } = req.body as any;
