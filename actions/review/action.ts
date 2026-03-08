@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { generateText, Output } from "ai";
 import axios from "axios";
-import { schema } from "./schema.ts";
+import { reviewSchema } from "./schema.ts";
 import { model } from "./model.ts";
 
 const giteaUrl = process.env.GITEA_URL;
@@ -14,9 +14,10 @@ const systemPrompt = readFileSync(new URL("./system-prompt.md", import.meta.url)
  * @param res The response object.
  */
 export async function review(req, res) {
-    res.status(200).send("Event received. Processing review...");
     const { action, pull_request, requested_reviewer } = req.body;
-    if (action === "review_requested" && requested_reviewer.username === "AI") {
+
+    res.status(200).send("Event received. Processing review...");
+    if (action === "review_requested" && requested_reviewer.username === process.env.BOT_NAME) {
         const { base, number } = pull_request;
         const baseUrl: string = `${giteaUrl}/repos/${base.repo.full_name}`;
         const { data: diffContent } = await axios.get(`${baseUrl}/pulls/${number}.diff`, giteaAuth);
@@ -25,34 +26,24 @@ export async function review(req, res) {
             model,
             system: systemPrompt,
             prompt: diffContent,
-            output: Output.object({ schema }),
+            output: Output.object({ schema: reviewSchema }),
         });
 
-        const isBad = output.overallScore < 8;
+        const requestChanges = output.overallScore < parseInt(process.env.REQUEST_CHANGES_THRESHOLD);
         const reviewEndpoint = `${baseUrl}/pulls/${number}/reviews`;
-
-        const comments = output.files.flatMap((fileFeedback) => {
-            const seen = new Set<string>();
-
-            const mapped = fileFeedback.comments.flatMap((c) => {
-                const new_position = c.line;
-
-                const body = c.body;
-                const key = `${fileFeedback.path}|${new_position}|${body}`;
-                if (seen.has(key)) return [];
-                seen.add(key);
-
-                return [{ path: fileFeedback.path, new_position, body }];
-            });
-
-            return mapped.slice(0, 8);
+        const comments = output.files.flatMap((file) => {
+            return file.comments.map((c) => ({
+                path: file.path,
+                new_position: c.line,
+                body: c.body,
+            }));
         });
 
         await axios.post(
             reviewEndpoint,
             {
                 body: `### 🤖 AI Review\n\n**Overall Score:** ${output.overallScore}/10`,
-                event: isBad ? "REQUEST_CHANGES" : "COMMENT",
+                event: requestChanges ? "REQUEST_CHANGES" : "COMMENT",
                 comments,
             },
             giteaAuth,

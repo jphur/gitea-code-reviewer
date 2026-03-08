@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const schema = z.object({
+export const reviewSchema = z.object({
     files: z.array(
         z.object({
             path: z.string(),
@@ -11,4 +11,4 @@ export const schema = z.object({
     overallScore: z.number(),
 });
 
-export type ReviewSchema = z.infer<typeof schema>;
+export type ReviewSchema = z.infer<typeof reviewSchema>;
