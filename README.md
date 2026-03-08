@@ -4,7 +4,7 @@ Asistente de revisión automática para Pull Requests en Gitea usando IA.
 
 ## Requisitos
 
-- Node.js 20+
+- Node.js 24+
 - pnpm
 - Instancia de Gitea con API habilitada
 - Token de Gitea con permisos para leer PRs y crear reviews
