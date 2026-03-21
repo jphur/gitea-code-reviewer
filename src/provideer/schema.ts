@@ -9,6 +9,7 @@ export const reviewSchema = z.object({
         }),
     ),
     overallScore: z.number(),
+    summary: z.string().max(50),
 });
 
 export type ReviewSchema = z.infer<typeof reviewSchema>;

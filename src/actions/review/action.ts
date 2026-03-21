@@ -1,10 +1,10 @@
 import { readFileSync } from "fs";
 import { generateText, Output } from "ai";
-import { reviewSchema } from "./schema";
-import { model } from "./model";
+import { reviewSchema } from "../../provideer/schema";
+import { model } from "../../provideer/model";
 import logger from "../../logger";
 import type { Request, Response } from "express";
-import Gitea from "../../../classes/gitea";
+import Gitea from "../../classes/gitea";
 
 const giteaUrl = process.env.GITEA_URL;
 const systemPrompt = readFileSync(new URL("./system-prompt.md", import.meta.url), "utf-8");
