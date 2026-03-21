@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { review } from "./actions/review/action";
+import { review } from "./actions/review";
 
 const router: Router = express.Router();
 
