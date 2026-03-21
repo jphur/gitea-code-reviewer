@@ -1,19 +1,20 @@
 import { readFileSync } from "fs";
 import { generateText, Output } from "ai";
 import { reviewSchema } from "./schema";
-import { model } from "./provider/google";
-import logger from "./logger";
+import { model } from "../provider/google";
+import logger from "../logger";
 import type { Request, Response } from "express";
-import Gitea from "./gitea";
+import Gitea from "../clients/gitea";
 
 const giteaUrl = process.env.GITEA_URL;
-const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");
+const systemPrompt = readFileSync("src/actions/system-prompt.md", "utf-8");
 
 /**
  * Handles the review process for a pull request.
  * @param req The request object.
  * @param res The response object.
  */
+
 export async function review(req: Request, res: Response) {
     const { action, pull_request, requested_reviewer } = req.body as any;
 
