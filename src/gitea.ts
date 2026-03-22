@@ -28,7 +28,8 @@ class Gitea {
      * @returns The response from the Gitea API containing the diff content.
      */
     async getDiff(pullRequestNumber: number) {
-        return this.client.get(`/pulls/${pullRequestNumber}.diff`);
+        const res = await this.client.get(`/pulls/${pullRequestNumber}.diff`);
+        return res.data;
     }
 
     /**

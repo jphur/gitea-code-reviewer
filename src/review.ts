@@ -8,12 +8,13 @@ import Gitea from "./gitea";
 import { config } from "./config";
 import { webhookSchema } from "./schemas/webhook";
 
-const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");
-
 /**
- * Handles the review process for a pull request.
- * @param req The request object.
- * @param res The response object.
+ * Handles incoming review requests from Gitea webhooks.
+ * Validates the payload,
+ * generates a review using the AI model
+ * and posts the review back to Gitea.
+ * @param req The incoming request object containing the webhook payload.
+ * @param res The response object used to send back the status of the review processing.
  */
 export async function review(req: Request, res: Response) {
     const parsedWebhook = webhookSchema.safeParse(req.body);
@@ -34,37 +35,33 @@ export async function review(req: Request, res: Response) {
     if (action === "review_requested" && requested_reviewer?.username === config.BOT_NAME && pull_request) {
         const { base, number } = pull_request;
         const gitea = new Gitea(`${config.GITEA_URL}/repos/${base.repo.full_name}`, config.GITEA_TOKEN);
-
-        if (!gitea.validateSecret(req, config.GITEA_WEBHOOK_SECRET)) {
-            const message = "Invalid webhook signature";
-            logger.warn(message);
-            return res.status(401).send(message);
-        }
-
         res.status(200).send("Event received. Processing review...");
-        const { data: diffContent } = await gitea.getDiff(number);
-        const { output } = await generateText({
-            model,
-            system: systemPrompt,
-            prompt: diffContent,
-            output: Output.object({ schema: reviewSchema }),
-        });
-
-        const threshold = config.REQUEST_CHANGES_THRESHOLD;
-        const requestChanges = output.overallScore < threshold;
-        const comments = output.files.flatMap((file) => {
-            return file.comments.map((c) => ({
-                path: file.path,
-                new_position: c.line,
-                body: c.body,
-            }));
-        });
 
         try {
+            const diffContent = await gitea.getDiff(number);
+            const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");
+            const { output } = await generateText({
+                model,
+                system: systemPrompt,
+                prompt: diffContent,
+                output: Output.object({ schema: reviewSchema }),
+            });
+
+            const threshold = config.REQUEST_CHANGES_THRESHOLD;
+            const requestChanges = output.overallScore < threshold;
+            const comments = output.files.flatMap((file) => {
+                return file.comments.map((c) => ({
+                    path: file.path,
+                    new_position: c.line,
+                    body: c.body,
+                }));
+            });
+
             await gitea.postReview(number, output.summary, requestChanges ? "REQUEST_CHANGES" : "APPROVE", comments);
             logger.info(`Posted review for PR #${number} with overall score ${output.overallScore}`);
         } catch (err) {
-            logger.error(`Failed to post review: ${err}`);
+            logger.error(`Error processing review: ${err instanceof Error ? err.message : String(err)}`);
+            return;
         }
     }
 }

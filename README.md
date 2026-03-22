@@ -19,17 +19,17 @@ pnpm install
 
 2. Create a `.env` file with:
 
-
 GITEA_URL=http://your-gitea-instance
 GITEA_TOKEN=your_token
 GOOGLE_GENERATIVE_AI_API_KEY=secret
-```
+
+````
 
 3. Run the service (in production mode):
 
 ```bash
 pnpm start          # compiles and runs dist/main.js
-```
+````
 
 During development you can start with automatic reload:
 
@@ -71,7 +71,7 @@ The main keys are as follows (there are more options and some have default value
 
 ## License and Attribution
 
-This project is distributed under **BSD 3-Clause License** (see [LICENSE](LICENSE)).
+This project is distributed under **GNU General Public License v3.0 or later** (see [LICENSE](LICENSE)).
 
 You can use, modify and redistribute the code, but you must maintain attribution to the original project in the source code and/or distribution documentation.
 
