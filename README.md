@@ -1,4 +1,4 @@
-# Reviewer v1.0.0-alpha
+# Reviewer v1.0.0-beta
 
 Automatic review assistant for Pull Requests in Gitea using AI.
 
