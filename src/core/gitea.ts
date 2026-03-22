@@ -1,5 +1,5 @@
 import axios from "axios";
-import { config } from "./config";
+import { config } from "../config";
 import crypto from "crypto";
 import type { Request } from "express";
 

@@ -47,7 +47,7 @@ And the test suite:
 pnpm test           # runs vitest
 ```
 
-The server listens on `http://localhost:4000` by default and exposes `GET /health` and `POST /review`.
+The server listens on `http://localhost:4000` by default and exposes `POST /review`.
 
 ### Environment Variables
 
@@ -77,9 +77,8 @@ The main keys are as follows (there are more options and some have default value
 
 ### Runtime Endpoints
 
-- `GET /health` returns `200` when the service can reach the configured Gitea API, and `503` otherwise.
-- `POST /review` accepts the Gitea webhook payload for `review_requested` events.
-- Requests to `POST /review` are rate limited per client IP before signature validation.
+- `POST /review` accepts the Gitea webhook payload for review events.
+- Requests to `POST /review` are signature validated.
 
 ### Deployment
 

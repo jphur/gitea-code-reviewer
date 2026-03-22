@@ -1,12 +1,12 @@
 import { readFileSync } from "fs";
 import { generateText, Output } from "ai";
-import { reviewSchema } from "./schemas/review";
-import { model } from "./provider/google";
+import { reviewSchema } from "../schemas/review";
+import { model } from "../providers/google";
 import logger from "./logger";
 import type { Request, Response } from "express";
 import Gitea from "./gitea";
-import { config } from "./config";
-import { webhookSchema } from "./schemas/webhook";
+import { config } from "../config";
+import { webhookSchema } from "../schemas/webhook";
 
 /**
  * Builds a log context string for a specific repository and pull request.
@@ -67,7 +67,7 @@ export async function review(req: Request, res: Response) {
         try {
             logger.info(`${logContext} stage=read_diff`);
             const diffContent = await gitea.getDiff(number);
-            const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");
+            const systemPrompt = readFileSync("src/resources/system-prompt.md", "utf-8");
 
             logger.info(`${logContext} stage=generate_review`);
             const { output } = await generateText({

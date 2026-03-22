@@ -1,8 +1,8 @@
 import express, { Router, Request, Response, NextFunction } from "express";
-import { review } from "./review";
-import Gitea from "./gitea";
-import { config } from "./config";
-import logger from "./logger";
+import { review } from "../core/review";
+import Gitea from "../core/gitea";
+import { config } from "../config";
+import logger from "../core/logger";
 
 const router: Router = express.Router();
 

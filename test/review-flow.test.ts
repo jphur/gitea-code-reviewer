@@ -32,11 +32,11 @@ const mocks = vi.hoisted(() => {
     };
 });
 
-vi.mock("../src/provider/google", () => ({
+vi.mock("../src/providers/google", () => ({
     model: {},
 }));
 
-vi.mock("../src/logger", () => ({
+vi.mock("../src/core/logger", () => ({
     default: {
         info: mocks.info,
         warn: mocks.warn,
@@ -44,7 +44,7 @@ vi.mock("../src/logger", () => ({
     },
 }));
 
-vi.mock("../src/gitea", () => ({
+vi.mock("../src/core/gitea", () => ({
     default: mocks.MockGitea,
 }));
 
@@ -93,7 +93,7 @@ test("review flow posts the review for the targeted bot", async () => {
         },
     });
 
-    const { review } = await import("../src/review");
+    const { review } = await import("../src/core/review");
 
     const response = {
         statusCode: 0,

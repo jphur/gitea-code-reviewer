@@ -1,8 +1,8 @@
 import express from "express";
-import router from "./router";
-import logger from "./logger";
+import router from "./api/router";
+import logger from "./core/logger";
 import { config } from "./config";
-import Gitea from "./gitea";
+import Gitea from "./core/gitea";
 
 const app = express();
 app.use(
