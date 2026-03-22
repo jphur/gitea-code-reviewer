@@ -1,7 +1,7 @@
 {
-    "name": "reviewer",
+    "name": "gitea-reviewer",
     "version": "1.0.0-alpha",
-    "description": "Agentic review assistant for code and pull requests",
+    "description": "Agentic review assistant for pull requests",
     "type": "module",
     "main": "dist/main.js",
     "scripts": {
