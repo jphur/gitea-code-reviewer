@@ -47,7 +47,7 @@ And the test suite:
 pnpm test           # runs vitest
 ```
 
-The server listens on `http://localhost:4000` by default and exposes `POST /review` for Gitea webhooks.
+The server listens on `http://localhost:4000` by default and exposes `GET /health` and `POST /review`.
 
 ### Environment Variables
 
@@ -72,6 +72,33 @@ The main keys are as follows (there are more options and some have default value
 - `MAX_DIFF_CHARS` – maximum diff size sent to the model before truncation (default 200000)
 - `REQUEST_RETRY_COUNT` – retry attempts for Gitea requests (default 2)
 - `REQUEST_RETRY_DELAY_MS` – delay between Gitea retries in milliseconds (default 500)
+- `RATE_LIMIT_WINDOW_MS` – time window for webhook rate limiting in milliseconds (default 60000)
+- `RATE_LIMIT_MAX_REQUESTS` – maximum webhook requests per window from the same client IP (default 60)
+
+### Runtime Endpoints
+
+- `GET /health` returns `200` when the service can reach the configured Gitea API, and `503` otherwise.
+- `POST /review` accepts the Gitea webhook payload for `review_requested` events.
+- Requests to `POST /review` are rate limited per client IP before signature validation.
+
+### Deployment
+
+The simplest production setup is:
+
+```bash
+pnpm install
+pnpm build
+pnpm start
+```
+
+For Docker-based deployment:
+
+```bash
+docker build -t gitea-reviewer .
+docker run --env-file .env -p 4000:4000 gitea-reviewer
+```
+
+If you put the service behind a reverse proxy, configure the proxy to pass the original client IP so the webhook rate limit can distinguish callers.
 
 ### Known Limitations
 

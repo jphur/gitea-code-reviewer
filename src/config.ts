@@ -14,6 +14,8 @@ const configSchema = z.object({
     MAX_DIFF_CHARS: z.coerce.number().int().positive().default(200000),
     REQUEST_RETRY_COUNT: z.coerce.number().int().min(0).default(2),
     REQUEST_RETRY_DELAY_MS: z.coerce.number().int().positive().default(500),
+    RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
+    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(60),
 });
 
 export const config = configSchema.parse(process.env);

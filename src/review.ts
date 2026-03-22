@@ -32,9 +32,7 @@ function getErrorMessage(error: unknown) {
 
 /**
  * Handles incoming review requests from Gitea webhooks.
- * Validates the payload,
- * generates a review using the AI model
- * and posts the review back to Gitea.
+ * Validates the payload, generates a review using the AI model and posts the review back to Gitea.
  * @param req The incoming request object containing the webhook payload.
  * @param res The response object used to send back the status of the review processing.
  */
@@ -67,7 +65,6 @@ export async function review(req: Request, res: Response) {
         res.status(200).send("Event received. Processing review...");
 
         try {
-            await gitea.healthCheck();
             logger.info(`${logContext} stage=read_diff`);
             const diffContent = await gitea.getDiff(number);
             const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");
@@ -78,6 +75,7 @@ export async function review(req: Request, res: Response) {
                 system: systemPrompt,
                 prompt: diffContent,
                 output: Output.object({ schema: reviewSchema }),
+                abortSignal: AbortSignal.timeout(config.AI_TIMEOUT_MS),
             });
 
             const threshold = config.REQUEST_CHANGES_THRESHOLD;
@@ -92,7 +90,9 @@ export async function review(req: Request, res: Response) {
 
             logger.info(`${logContext} stage=post_review`);
             await gitea.postReview(number, output.summary, requestChanges ? "REQUEST_CHANGES" : "APPROVE", comments);
-            logger.info(`${logContext} result=posted score=${output.overallScore} duration_ms=${Date.now() - startedAt} reviews_emitted=1 comments=${comments.length}`);
+            logger.info(
+                `${logContext} result=posted score=${output.overallScore} duration_ms=${Date.now() - startedAt} reviews_emitted=1 comments=${comments.length}`,
+            );
         } catch (err) {
             logger.error(`${logContext} result=error duration_ms=${Date.now() - startedAt} reviews_emitted=0 message=${getErrorMessage(err)}`);
             return;

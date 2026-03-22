@@ -2,6 +2,16 @@ import axios from "axios";
 import { config } from "./config";
 import crypto from "crypto";
 import type { Request } from "express";
+
+function getErrorMessage(error: unknown) {
+    if (axios.isAxiosError(error)) {
+        if (error.code === "ECONNABORTED") return `timed out after ${config.GITEA_TIMEOUT_MS}ms`;
+        if (error.response) return `HTTP ${error.response.status}${error.response.statusText ? ` ${error.response.statusText}` : ""}`;
+    }
+
+    return error instanceof Error ? error.message : String(error);
+}
+
 class Gitea {
     private client;
     constructor(
@@ -45,7 +55,7 @@ class Gitea {
             }
         }
 
-        throw new Error(`${description} after ${retries + 1} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+        throw new Error(`${description} after ${retries + 1} attempts: ${getErrorMessage(lastError)}`);
     }
 
     /**
@@ -92,7 +102,7 @@ class Gitea {
      * @param secret The secret key used to generate the expected signature for validation.
      * @returns A boolean indicating whether the webhook signature is valid (true) or not (false).
      */
-     validateSecret(req: Request, secret: string) {
+    validateSecret(req: Request, secret: string) {
         const signature = req.header("X-Gitea-Signature");
         const request = req as Request & { rawBody?: Buffer };
 
@@ -101,6 +111,8 @@ class Gitea {
         const expectedSignature = crypto.createHmac("sha256", secret).update(request.rawBody).digest("hex");
         const expected = Buffer.from(expectedSignature, "hex");
         const provided = Buffer.from(signature, "hex");
+
+        if (expected.length !== provided.length) return false;
 
         return crypto.timingSafeEqual(expected, provided);
     }
