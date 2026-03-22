@@ -21,6 +21,11 @@ function buildLogContext(repoFullName?: string, pullRequestNumber?: number) {
     return `{repo=${repo} pr=${pr}}`;
 }
 
+/**
+ * Extracts a human-readable error message from an unknown error object.
+ * @param error The error object to extract the message from.
+ * @returns A string containing the error message.
+ */
 function getErrorMessage(error: unknown) {
     return error instanceof Error ? error.message : String(error);
 }
@@ -34,10 +39,11 @@ function getErrorMessage(error: unknown) {
  * @param res The response object used to send back the status of the review processing.
  */
 export async function review(req: Request, res: Response) {
+    const startedAt = Date.now();
     const parsedWebhook = webhookSchema.safeParse(req.body);
     if (!parsedWebhook.success) {
         const message = `Invalid webhook payload: ${parsedWebhook.error.message}`;
-        logger.warn(`repo=unknown pr=unknown result=invalid_payload message=${message}`);
+        logger.warn(`repo=unknown pr=unknown result=invalid_payload duration_ms=${Date.now() - startedAt} reviews_emitted=0 message=${message}`);
         return res.status(400).send(message);
     }
 
@@ -45,16 +51,16 @@ export async function review(req: Request, res: Response) {
     const logContext = buildLogContext(pull_request?.base.repo.full_name, pull_request?.number);
     if (action === "review_requested" && (!pull_request || !requested_reviewer)) {
         const message = "Invalid review_requested payload: missing pull_request or requested_reviewer";
-        logger.warn(`${logContext} result=invalid_payload message=${message}`);
+        logger.warn(`${logContext} result=invalid_payload duration_ms=${Date.now() - startedAt} reviews_emitted=0 message=${message}`);
         return res.status(400).send(message);
     }
 
     if (action !== "review_requested" || requested_reviewer?.username !== config.BOT_NAME || !pull_request) {
-        logger.info(`${logContext} result=ignored reason=not_targeted_for_bot`);
+        logger.info(`${logContext} result=ignored duration_ms=${Date.now() - startedAt} reviews_emitted=0 reason=not_targeted_for_bot`);
         return res.status(200).send("Event received. Ignored.");
     }
 
-    logger.info(`${logContext} result=received`);
+    logger.info(`${logContext} result=received duration_ms=0 reviews_emitted=0`);
     if (action === "review_requested" && requested_reviewer?.username === config.BOT_NAME && pull_request) {
         const { base, number } = pull_request;
         const gitea = new Gitea(`${config.GITEA_URL}/repos/${base.repo.full_name}`, config.GITEA_TOKEN);
@@ -85,9 +91,9 @@ export async function review(req: Request, res: Response) {
 
             logger.info(`${logContext} stage=post_review`);
             await gitea.postReview(number, output.summary, requestChanges ? "REQUEST_CHANGES" : "APPROVE", comments);
-            logger.info(`${logContext} result=posted score=${output.overallScore}`);
+            logger.info(`${logContext} result=posted score=${output.overallScore} duration_ms=${Date.now() - startedAt} reviews_emitted=1 comments=${comments.length}`);
         } catch (err) {
-            logger.error(`${logContext} result=error message=${getErrorMessage(err)}`);
+            logger.error(`${logContext} result=error duration_ms=${Date.now() - startedAt} reviews_emitted=0 message=${getErrorMessage(err)}`);
             return;
         }
     }

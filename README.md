@@ -67,13 +67,20 @@ The main keys are as follows (there are more options and some have default value
 - `GOOGLE_GENERATIVE_AI_API_KEY` – credentials for the AI provider
 - `PORT` and `ENDPOINT` – where the server listens (4000 and 0.0.0.0 by default)
 - `REQUEST_CHANGES_THRESHOLD` – numeric threshold (default 8) below which the bot uses the `REQUEST_CHANGES` event instead of `APPROVE`
+- `GITEA_TIMEOUT_MS` – timeout for Gitea calls in milliseconds (default 15000)
+- `AI_TIMEOUT_MS` – timeout for AI calls in milliseconds (default 60000)
+- `MAX_DIFF_CHARS` – maximum diff size sent to the model before truncation (default 200000)
+- `REQUEST_RETRY_COUNT` – retry attempts for Gitea requests (default 2)
+- `REQUEST_RETRY_DELAY_MS` – delay between Gitea retries in milliseconds (default 500)
 
 ### Known Limitations
 
 - The bot only reacts to `review_requested` webhook events.
 - A single AI provider is configured.
-- There is no retry queue for Gitea or model failures.
+- Retries are in-process only; there is no durable retry queue.
 - Reviews are processed inline in the webhook request path.
+- Very large diffs are truncated before reaching the model.
+- If the model fails or returns incomplete output, the bot posts a minimal fallback review instead of stopping.
 - The current schema expects the model to return structured review data that matches `src/schemas/review.ts`.
 
 ## License and Attribution

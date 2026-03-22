@@ -1,6 +1,7 @@
 import axios from "axios";
 import crypto from "crypto";
 import type { Request } from "express";
+import { config } from "./config";
 
 class Gitea {
     private client;
@@ -19,7 +20,33 @@ class Gitea {
         return axios.create({
             baseURL: this.baseUrl,
             headers: { Authorization: `token ${this.token}` },
+            timeout: config.GITEA_TIMEOUT_MS,
         });
+    }
+
+    /**
+     * A helper method to perform API calls with retry logic.
+     * @param cb The callback function that performs the API call and returns a promise.
+     * @param description A description of the API call being made, used for error messages.
+     * @returns The result of the API call if successful.
+     * @throws An error if all retry attempts fail, including the last error message.
+     */
+    private async call<T>(cb: () => Promise<T>, description: string) {
+        const retries = config.REQUEST_RETRY_COUNT;
+        const delayMs = config.REQUEST_RETRY_DELAY_MS;
+        let lastError: unknown;
+
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            try {
+                return await cb();
+            } catch (error) {
+                lastError = error;
+                if (attempt === retries) break;
+                await new Promise((resolve) => setTimeout(resolve, delayMs * (attempt + 1)));
+            }
+        }
+
+        throw new Error(`${description} after ${retries + 1} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
     }
 
     /**
@@ -28,12 +55,10 @@ class Gitea {
      * @returns The response from the Gitea API containing the diff content.
      */
     async getDiff(pullRequestNumber: number) {
-        try {
+        return this.call(async () => {
             const res = await this.client.get(`/pulls/${pullRequestNumber}.diff`);
             return res.data;
-        } catch (err) {
-            throw new Error(`Failed to fetch diff for PR #${pullRequestNumber}: ${err instanceof Error ? err.message : String(err)}`);
-        }
+        }, `Failed to fetch diff for PR #${pullRequestNumber}`);
     }
 
     /**
@@ -44,15 +69,13 @@ class Gitea {
      * @param comments An array of comments to include in the review, each containing the file path, line number, and comment body.
      */
     async postReview(pullRequestNumber: number, body: string, event: string, comments: any[]) {
-        try {
+        await this.call(async () => {
             await this.client.post(`/pulls/${pullRequestNumber}/reviews`, {
                 body,
                 event,
                 comments,
             });
-        } catch (err) {
-            throw new Error(`Failed to post review for PR #${pullRequestNumber}: ${err instanceof Error ? err.message : String(err)}`);
-        }
+        }, `Failed to post review for PR #${pullRequestNumber}`);
     }
 
     validateSecret(req: Request, secret: string) {

@@ -9,6 +9,11 @@ const configSchema = z.object({
     PORT: z.coerce.number().int().positive().default(4000),
     ENDPOINT: z.string().min(1).default("0.0.0.0"),
     REQUEST_CHANGES_THRESHOLD: z.coerce.number().default(8),
+    GITEA_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
+    AI_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
+    MAX_DIFF_CHARS: z.coerce.number().int().positive().default(200000),
+    REQUEST_RETRY_COUNT: z.coerce.number().int().min(0).default(2),
+    REQUEST_RETRY_DELAY_MS: z.coerce.number().int().positive().default(500),
 });
 
 export const config = configSchema.parse(process.env);

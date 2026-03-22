@@ -58,6 +58,11 @@ vi.mock("../src/config", () => ({
         PORT: 4000,
         ENDPOINT: "0.0.0.0",
         REQUEST_CHANGES_THRESHOLD: 8,
+        GITEA_TIMEOUT_MS: 15000,
+        AI_TIMEOUT_MS: 60000,
+        MAX_DIFF_CHARS: 200000,
+        REQUEST_RETRY_COUNT: 2,
+        REQUEST_RETRY_DELAY_MS: 500,
     },
 }));
 
