@@ -1,4 +1,6 @@
 import axios from "axios";
+import crypto from "crypto";
+import type { Request } from "express";
 
 class Gitea {
     private client;
@@ -42,6 +44,21 @@ class Gitea {
             event,
             comments,
         });
+    }
+
+    validateSecret(req: Request, secret: string) {
+        const signature = req.header("X-Gitea-Signature");
+        const request = req as Request & { rawBody?: Buffer };
+
+        if (!signature || !request.rawBody) return false;
+
+        const expectedSignature = crypto.createHmac("sha256", secret)
+            .update(request.rawBody)
+            .digest("hex");
+        const expected = Buffer.from(expectedSignature, "hex");
+        const provided = Buffer.from(signature, "hex");
+
+        return crypto.timingSafeEqual(expected, provided);
     }
 }
 
