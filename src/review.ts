@@ -30,18 +30,18 @@ export async function review(req: Request, res: Response) {
         return res.status(400).send(message);
     }
 
-    res.status(200).send("Event received. Processing review...");
     logger.info("Received review webhook");
     if (action === "review_requested" && requested_reviewer?.username === config.BOT_NAME && pull_request) {
         const { base, number } = pull_request;
         const gitea = new Gitea(`${config.GITEA_URL}/repos/${base.repo.full_name}`, config.GITEA_TOKEN);
 
-        if(!gitea.validateSecret(req, config.GITEA_WEBHOOK_SECRET)) {
+        if (!gitea.validateSecret(req, config.GITEA_WEBHOOK_SECRET)) {
             const message = "Invalid webhook signature";
             logger.warn(message);
             return res.status(401).send(message);
         }
 
+        res.status(200).send("Event received. Processing review...");
         const { data: diffContent } = await gitea.getDiff(number);
         const { output } = await generateText({
             model,
