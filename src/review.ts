@@ -1,12 +1,13 @@
 import { readFileSync } from "fs";
 import { generateText, Output } from "ai";
-import { reviewSchema } from "./schema";
+import { reviewSchema } from "./schemas/review";
 import { model } from "./provider/google";
 import logger from "./logger";
 import type { Request, Response } from "express";
 import Gitea from "./gitea";
+import { config } from "./config";
+import { webhookSchema } from "./schemas/webhook";
 
-const giteaUrl = process.env.GITEA_URL;
 const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");
 
 /**
@@ -15,13 +16,27 @@ const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");
  * @param res The response object.
  */
 export async function review(req: Request, res: Response) {
-    const { action, pull_request, requested_reviewer } = req.body as any;
+    const parsedWebhook = webhookSchema.safeParse(req.body);
+
+    if (!parsedWebhook.success) {
+        const message = `Invalid webhook payload: ${parsedWebhook.error.message}`;
+        logger.warn(message);
+        return res.status(400).send(message);
+    }
+
+    const { action, pull_request, requested_reviewer } = parsedWebhook.data;
+
+    if (action === "review_requested" && (!pull_request || !requested_reviewer)) {
+        const message = "Invalid review_requested payload: missing pull_request or requested_reviewer";
+        logger.warn(message);
+        return res.status(400).send(message);
+    }
 
     res.status(200).send("Event received. Processing review...");
     logger.info("Received review webhook");
-    if (action === "review_requested" && requested_reviewer.username === process.env.BOT_NAME) {
+    if (action === "review_requested" && requested_reviewer?.username === config.BOT_NAME && pull_request) {
         const { base, number } = pull_request;
-        const gitea = new Gitea(`${giteaUrl}/repos/${base.repo.full_name}`, process.env.GITEA_TOKEN!);
+        const gitea = new Gitea(`${config.GITEA_URL}/repos/${base.repo.full_name}`, config.GITEA_TOKEN);
         const { data: diffContent } = await gitea.getDiff(number);
 
         const { output } = await generateText({
@@ -31,7 +46,7 @@ export async function review(req: Request, res: Response) {
             output: Output.object({ schema: reviewSchema }),
         });
 
-        const threshold = Number(process.env.REQUEST_CHANGES_THRESHOLD);
+        const threshold = config.REQUEST_CHANGES_THRESHOLD;
         const requestChanges = output.overallScore < threshold;
         const comments = output.files.flatMap((file) => {
             return file.comments.map((c) => ({
