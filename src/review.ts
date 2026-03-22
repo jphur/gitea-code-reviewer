@@ -67,6 +67,7 @@ export async function review(req: Request, res: Response) {
         res.status(200).send("Event received. Processing review...");
 
         try {
+            await gitea.healthCheck();
             logger.info(`${logContext} stage=read_diff`);
             const diffContent = await gitea.getDiff(number);
             const systemPrompt = readFileSync("src/system-prompt.md", "utf-8");

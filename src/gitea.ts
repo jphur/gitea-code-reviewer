@@ -1,8 +1,7 @@
 import axios from "axios";
+import { config } from "./config";
 import crypto from "crypto";
 import type { Request } from "express";
-import { config } from "./config";
-
 class Gitea {
     private client;
     constructor(
@@ -78,7 +77,22 @@ class Gitea {
         }, `Failed to post review for PR #${pullRequestNumber}`);
     }
 
-    validateSecret(req: Request, secret: string) {
+    /**
+     * Checks that the configured token can reach the Gitea API.
+     */
+    async healthCheck() {
+        await this.call(async () => {
+            await this.client.get("/api/v1/user");
+        }, "Failed to verify Gitea connectivity");
+    }
+
+    /**
+     * Validates the incoming webhook request by comparing the provided signature with the expected signature generated using the secret and the raw request body.
+     * @param req The incoming request object containing the webhook payload and headers.
+     * @param secret The secret key used to generate the expected signature for validation.
+     * @returns A boolean indicating whether the webhook signature is valid (true) or not (false).
+     */
+     validateSecret(req: Request, secret: string) {
         const signature = req.header("X-Gitea-Signature");
         const request = req as Request & { rawBody?: Buffer };
 
