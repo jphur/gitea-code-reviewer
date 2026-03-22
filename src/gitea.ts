@@ -28,8 +28,12 @@ class Gitea {
      * @returns The response from the Gitea API containing the diff content.
      */
     async getDiff(pullRequestNumber: number) {
-        const res = await this.client.get(`/pulls/${pullRequestNumber}.diff`);
-        return res.data;
+        try {
+            const res = await this.client.get(`/pulls/${pullRequestNumber}.diff`);
+            return res.data;
+        } catch (err) {
+            throw new Error(`Failed to fetch diff for PR #${pullRequestNumber}: ${err instanceof Error ? err.message : String(err)}`);
+        }
     }
 
     /**
@@ -40,11 +44,15 @@ class Gitea {
      * @param comments An array of comments to include in the review, each containing the file path, line number, and comment body.
      */
     async postReview(pullRequestNumber: number, body: string, event: string, comments: any[]) {
-        await this.client.post(`/pulls/${pullRequestNumber}/reviews`, {
-            body,
-            event,
-            comments,
-        });
+        try {
+            await this.client.post(`/pulls/${pullRequestNumber}/reviews`, {
+                body,
+                event,
+                comments,
+            });
+        } catch (err) {
+            throw new Error(`Failed to post review for PR #${pullRequestNumber}: ${err instanceof Error ? err.message : String(err)}`);
+        }
     }
 
     validateSecret(req: Request, secret: string) {
@@ -53,9 +61,7 @@ class Gitea {
 
         if (!signature || !request.rawBody) return false;
 
-        const expectedSignature = crypto.createHmac("sha256", secret)
-            .update(request.rawBody)
-            .digest("hex");
+        const expectedSignature = crypto.createHmac("sha256", secret).update(request.rawBody).digest("hex");
         const expected = Buffer.from(expectedSignature, "hex");
         const provided = Buffer.from(signature, "hex");
 
