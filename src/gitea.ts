@@ -3,6 +3,11 @@ import { config } from "./config";
 import crypto from "crypto";
 import type { Request } from "express";
 
+/**
+ * Extracts a human-readable error message.
+ * @param error The error object to extract the message from.
+ * @returns A string containing the error message.
+ */
 function getErrorMessage(error: unknown) {
     if (axios.isAxiosError(error)) {
         if (error.code === "ECONNABORTED") return `timed out after ${config.GITEA_TIMEOUT_MS}ms`;
@@ -92,12 +97,12 @@ class Gitea {
      */
     async healthCheck() {
         await this.call(async () => {
-            await this.client.get("/api/v1/user");
+            await this.client.get("/user");
         }, "Failed to verify Gitea connectivity");
     }
 
     /**
-     * Validates the incoming webhook request by comparing the provided signature with the expected signature generated using the secret and the raw request body.
+     * Validates the incoming webhook request by comparing the provided signature with the expected signature.
      * @param req The incoming request object containing the webhook payload and headers.
      * @param secret The secret key used to generate the expected signature for validation.
      * @returns A boolean indicating whether the webhook signature is valid (true) or not (false).

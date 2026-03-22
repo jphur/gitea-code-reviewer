@@ -107,7 +107,6 @@ If you put the service behind a reverse proxy, configure the proxy to pass the o
 - Retries are in-process only; there is no durable retry queue.
 - Reviews are processed inline in the webhook request path.
 - Very large diffs are truncated before reaching the model.
-- If the model fails or returns incomplete output, the bot posts a minimal fallback review instead of stopping.
 - The current schema expects the model to return structured review data that matches `src/schemas/review.ts`.
 
 ## License and Attribution
