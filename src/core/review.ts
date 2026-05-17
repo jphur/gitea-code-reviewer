@@ -10,8 +10,6 @@ import { webhookSchema } from "../schemas/webhook";
 
 /**
  * Builds a log context string for a specific repository and pull request.
- * @param repoFullName The full name of the repository.
- * @param pullRequestNumber The number of the pull request.
  * @returns A formatted log context string.
  */
 function buildLogContext(repoFullName?: string, pullRequestNumber?: number) {
@@ -22,19 +20,8 @@ function buildLogContext(repoFullName?: string, pullRequestNumber?: number) {
 }
 
 /**
- * Extracts a human-readable error message from an unknown error object.
- * @param error The error object to extract the message from.
- * @returns A string containing the error message.
- */
-function getErrorMessage(error: unknown) {
-    return error instanceof Error ? error.message : String(error);
-}
-
-/**
  * Handles incoming review requests from Gitea webhooks.
  * Validates the payload, generates a review using the AI model and posts the review back to Gitea.
- * @param req The incoming request object containing the webhook payload.
- * @param res The response object used to send back the status of the review processing.
  */
 export async function review(req: Request, res: Response) {
     const startedAt = Date.now();
@@ -94,8 +81,7 @@ export async function review(req: Request, res: Response) {
                 `${logContext} result=posted score=${output.overallScore} duration_ms=${Date.now() - startedAt} reviews_emitted=1 comments=${comments.length}`,
             );
         } catch (err) {
-            logger.error(`${logContext} result=error duration_ms=${Date.now() - startedAt} reviews_emitted=0 message=${getErrorMessage(err)}`);
-            return;
+            logger.error(`${logContext} result=error duration_ms=${Date.now() - startedAt} reviews_emitted=0 message=${err}`);
         }
     }
 }
