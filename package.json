@@ -14,7 +14,7 @@
     "keywords": [],
     "author": "",
     "license": "GPL-3.0-or-later",
-    "packageManager": "pnpm@10.29.3",
+    "packageManager": "pnpm@11.1.2",
     "dependencies": {
         "@ai-sdk/google": "^3.0.29",
         "ai": "^6.0.86",
