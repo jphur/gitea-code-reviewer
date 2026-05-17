@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { config } from "../config";
 import crypto from "crypto";
 import type { Request } from "express";
@@ -26,7 +26,7 @@ class Gitea {
     private async call<T>(cb: () => Promise<T>, description: string) {
         const retries = config.REQUEST_RETRY_COUNT;
         const delayMs = config.REQUEST_RETRY_DELAY_MS;
-        let lastError: unknown;
+        let lastError;
 
         for (let attempt = 0; attempt <= retries; attempt++) {
             try {
@@ -38,7 +38,8 @@ class Gitea {
             }
         }
 
-        throw new Error(description + " after " + (retries + 1) + " attempts: " + lastError);
+        const err = axios.isAxiosError(lastError) ? JSON.stringify(lastError.response?.data) : lastError;
+        throw new Error(description + " after " + (retries + 1) + " attempts: " + err);
     }
 
     async getDiff(pullRequestNumber: number) {
