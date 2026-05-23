@@ -53,7 +53,7 @@ vi.mock("../src/config", () => ({
         GITEA_URL: "http://gitea.test",
         GITEA_TOKEN: "token",
         GITEA_WEBHOOK_SECRET: "secret",
-        GOOGLE_GENERATIVE_AI_API_KEY: "key",
+        AI_API_KEY: "key",
         BOT_NAME: "AI",
         PORT: 4000,
         ENDPOINT: "0.0.0.0",

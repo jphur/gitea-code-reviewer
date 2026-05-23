@@ -64,7 +64,8 @@ The main keys are as follows (there are more options and some have default value
 - `GITEA_TOKEN` – token with read/write permissions on PRs
 - `GITEA_WEBHOOK_SECRET` – secret used to verify the `X-Gitea-Signature` header
 - `BOT_NAME` – username of the automatic reviewer that must match `requested_reviewer.username` in the webhook (default `AI`)
-- `GOOGLE_GENERATIVE_AI_API_KEY` – credentials for the AI provider
+- `AI_API_KEY` – credentials for the AI provider
+- `AI_MODEL` – the name of the generative AI model to use
 - `PORT` and `ENDPOINT` – where the server listens (4000 and 0.0.0.0 by default)
 - `REQUEST_CHANGES_THRESHOLD` – numeric threshold (default 8) below which the bot uses the `REQUEST_CHANGES` event instead of `APPROVE`
 - `GITEA_TIMEOUT_MS` – timeout for Gitea calls in milliseconds (default 15000)
