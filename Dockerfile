@@ -14,4 +14,4 @@ COPY . .
 
 EXPOSE 4000
 
-CMD ["pnpm", "start"]
+CMD ["npm", "start"]
