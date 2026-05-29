@@ -6,12 +6,14 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 COPY . .
 
+RUN pnpm run build
+
 EXPOSE 4000
 
-CMD ["npm", "start"]
+CMD ["pnpm", "run", "start"]
