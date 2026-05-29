@@ -16,4 +16,4 @@ RUN pnpm run build
 
 EXPOSE 4000
 
-CMD ["pnpm", "run", "start"]
+CMD ["node", "dist/main.js"]
