@@ -17,6 +17,9 @@ const configSchema = z.object({
     RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60000),
     RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(60),
     AI_MODEL: z.string(),
+    MAX_CHAR_DIFF: z.coerce.number().int().positive(),
+    FORCE_BY_FILE: z.coerce.boolean().default(false),
+    AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive()
 });
 
 export const config = configSchema.parse(process.env);
