@@ -6,6 +6,7 @@ import logger from "./logger";
 import type { Request, Response } from "express";
 import Gitea from "./gitea";
 import { config } from "../config";
+import type { AIComment, AIFile } from "../types";
 
 const systemPrompt = readFileSync("src/resources/system-prompt.md", "utf-8");
 
@@ -67,8 +68,8 @@ async function getSuggestion(diff: string) {
     return output;
 }
 
-function getComments(file: any) {
-    return file.comments.map((c: any) => ({
+function getComments(file: AIFile) {
+    return file.comments.map((c: AIComment) => ({
         path: file.path,
         new_position: c.line,
         body: c.body,

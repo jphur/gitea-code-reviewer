@@ -2,6 +2,7 @@ import axios from "axios";
 import { config } from "../config";
 import crypto from "crypto";
 import type { Request } from "express";
+import type { AIComment } from "../types";
 
 class Gitea {
     private client;
@@ -49,7 +50,7 @@ class Gitea {
         }, `Failed to fetch diff for PR #${pullRequestNumber}`);
     }
 
-    async postReview(pullRequestNumber: number, body: string, event: string, comments: any[]) {
+    async postReview(pullRequestNumber: number, body: string, event: string, comments: AIComment[]) {
         await this.call(async () => {
             await this.client.post(`/pulls/${pullRequestNumber}/reviews`, {
                 body,
