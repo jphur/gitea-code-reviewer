@@ -75,12 +75,6 @@ pnpm build          # Compile TypeScript to ./dist
 pnpm start          # Run compiled JavaScript
 ```
 
-### Testing
-
-```bash
-pnpm test           # Run Vitest
-```
-
 ## Architecture
 
 - `src/api/` - Express server and middleware
